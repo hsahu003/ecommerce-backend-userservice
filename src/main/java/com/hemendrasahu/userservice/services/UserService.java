@@ -22,8 +22,8 @@ public class UserService {
     public User createUser(String name, String email, String password) throws DuplicateEntryException, InvalidInputException {
 
         //validation starts
-        if(email.isEmpty()){throw new InvalidInputException("Email can't be empty");}
-        if(password.isEmpty()){throw new InvalidInputException("Password can't be empty");}
+        if(email == null){throw new InvalidInputException("Email can't be empty");}
+        if(password == null){throw new InvalidInputException("Password can't be empty");}
 
         Optional<User> existingUserOptional = userRepository.getByEmail(email);
         if(existingUserOptional.isPresent()){
