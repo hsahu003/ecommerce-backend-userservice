@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.MultiValueMapAdapter;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
@@ -55,5 +56,25 @@ public class SessionService {
         session.setUser(optionalUser.get());
         session.setStatus(SessionStatus.ACTIVE);
         return sessionRepository.save(session);
+    }
+    public void expireSession(String cookieToken) throws Exception {
+        Optional<Session> optionalSession = sessionRepository.getByToken(cookieToken);
+        if(optionalSession.isEmpty()){
+            throw new Exception("Not a valid session to logout");
+        }
+
+        Session session = optionalSession.get();
+        session.setStatus(SessionStatus.EXPIRED);
+        sessionRepository.save(session);
+    }
+
+    public SessionStatus validateSession(String cookieToken) throws Exception {
+        Optional<Session> optionalSession = sessionRepository.getByToken(cookieToken);
+        if(optionalSession.isEmpty()){
+            throw new Exception("Not a valid session to validate");
+        }
+
+        Session session = optionalSession.get();
+        return session.getStatus();
     }
 }

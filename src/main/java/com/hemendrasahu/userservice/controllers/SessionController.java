@@ -42,14 +42,14 @@ public class SessionController {
         return new ResponseEntity<>(UserDto.from(session.getUser()), headers, HttpStatus.CREATED);
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<Void> expireSession(@RequestBody ExpireSessionRequestDto requestDto){
-        ResponseEntity<Void> response = new ResponseEntity<>(HttpStatus.OK);
-        return response;
+    @GetMapping("/logout")
+    public ResponseEntity<Void> expireSession(@CookieValue(name="auth-token", required = false) String cookieToken) throws Exception {
+        sessionService.expireSession(cookieToken);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PostMapping("/validate")
-    public SessionStatus validateToken(@RequestBody ValidateTokenRequestDto requestDto){
-        return SessionStatus.ACTIVE;
+    @GetMapping("/validate")
+    public SessionStatus validateToken(@CookieValue(name="auth-token", required = false) String cookieToken) throws Exception {
+        return sessionService.validateSession(cookieToken);
     }
 }
