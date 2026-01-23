@@ -5,6 +5,7 @@ import com.hemendrasahu.userservice.exceptions.InvalidInputException;
 import com.hemendrasahu.userservice.models.User;
 import com.hemendrasahu.userservice.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -13,10 +14,13 @@ import java.util.Optional;
 public class UserService {
 
     UserRepository userRepository;
+    BCryptPasswordEncoder  bCryptPasswordEncoder;
 
     @Autowired
-    public UserService(UserRepository userRepository){
+    public UserService(UserRepository userRepository,  BCryptPasswordEncoder bCryptPasswordEncoder) {
+
         this.userRepository = userRepository;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
     public User createUser(String name, String email, String password) throws DuplicateEntryException, InvalidInputException {
@@ -35,7 +39,7 @@ public class UserService {
         User user = new User();
         user.setName(name);
         user.setEmail(email);
-        user.setPassword(password);
+        user.setPassword(bCryptPasswordEncoder.encode(password));
 
         User savedUser = userRepository.save(user);
         return savedUser;

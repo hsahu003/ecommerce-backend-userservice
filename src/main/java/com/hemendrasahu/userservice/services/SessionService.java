@@ -10,6 +10,7 @@ import com.hemendrasahu.userservice.repositories.SessionRepository;
 import com.hemendrasahu.userservice.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.MultiValueMapAdapter;
@@ -24,11 +25,13 @@ public class SessionService {
 
     UserRepository userRepository;
     SessionRepository sessionRepository;
+    BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
-    public SessionService(UserRepository userRepository, SessionRepository sessionRepository){
+    public SessionService(UserRepository userRepository, SessionRepository sessionRepository, BCryptPasswordEncoder  bCryptPasswordEncoder){
         this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
     public Session createSession(String email, String password, String cookieToken) throws NotFoundException, DuplicateEntryException, InvalidInputException {
@@ -45,7 +48,7 @@ public class SessionService {
         }
 
         //check if user is valid
-        if(!optionalUser.get().getPassword().equals(password)){
+        if(!bCryptPasswordEncoder.matches(password, optionalUser.get().getPassword())){
             throw new InvalidInputException("Password and email does not match");
         }
 
