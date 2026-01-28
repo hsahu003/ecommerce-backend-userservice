@@ -8,13 +8,17 @@ import com.hemendrasahu.userservice.models.SessionStatus;
 import com.hemendrasahu.userservice.models.User;
 import com.hemendrasahu.userservice.repositories.SessionRepository;
 import com.hemendrasahu.userservice.repositories.UserRepository;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 
-import java.util.Optional;
-import java.util.UUID;
+import javax.crypto.SecretKey;
+import java.time.LocalDate;
+import java.util.*;
 
 @Service
 public class SessionService {
@@ -22,12 +26,15 @@ public class SessionService {
     UserRepository userRepository;
     SessionRepository sessionRepository;
     BCryptPasswordEncoder bCryptPasswordEncoder;
+    private SecretKey secretKey;
 
     @Autowired
     public SessionService(UserRepository userRepository, SessionRepository sessionRepository, BCryptPasswordEncoder  bCryptPasswordEncoder){
         this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+
+        secretKey = Jwts.SIG.HS256.key().build();
     }
 
     public Session createSession(String email, String password, String cookieToken) throws NotFoundException, DuplicateEntryException, InvalidInputException {
@@ -49,7 +56,17 @@ public class SessionService {
         }
 
         //create new session
-        String token = String.valueOf(UUID.randomUUID());
+        Map<String, Object> jwtData = new HashMap<>();
+        jwtData.put("email", email);
+        jwtData.put("createdAt", new Date());
+        jwtData.put("expiryAt", new Date(LocalDate.now().plusDays(3).toEpochDay()));
+
+        String token = Jwts
+                .builder()
+                .claims(jwtData)
+                .signWith(secretKey)
+                .compact();
+
         Session session = new Session();
         session.setToken(token);
         session.setUser(optionalUser.get());
@@ -73,6 +90,17 @@ public class SessionService {
             throw new Exception("Not a valid session to validate");
         }
 
+        //Token verification
+        Jws<Claims> claimsJws = Jwts
+                .parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(cookieToken);
+
+        //Fetching data from token
+        String email = (String) claimsJws.getPayload().get("email");
+
+        //Returning token status
         Session session = optionalSession.get();
         return session.getStatus();
     }
