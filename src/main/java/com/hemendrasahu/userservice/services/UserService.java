@@ -2,24 +2,32 @@ package com.hemendrasahu.userservice.services;
 
 import com.hemendrasahu.userservice.exceptions.DuplicateEntryException;
 import com.hemendrasahu.userservice.exceptions.InvalidInputException;
+import com.hemendrasahu.userservice.models.Role;
 import com.hemendrasahu.userservice.models.User;
+import com.hemendrasahu.userservice.repositories.RoleRepository;
 import com.hemendrasahu.userservice.repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class UserService {
 
     UserRepository userRepository;
+    RoleRepository roleRepository;
     BCryptPasswordEncoder  bCryptPasswordEncoder;
 
     @Autowired
-    public UserService(UserRepository userRepository,  BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public UserService(UserRepository userRepository,  RoleRepository roleRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
 
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
@@ -43,5 +51,25 @@ public class UserService {
 
         User savedUser = userRepository.save(user);
         return savedUser;
+    }
+
+    @Transactional
+    public User setUserRole(Long userId, List<Long> roleIds) throws InvalidInputException {
+        //check if user exist
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new InvalidInputException("User with id " + userId + " does not exist"));
+
+        // Fetch all roles in a single database hit
+        List<Role> foundRoles = roleRepository.findAllById(roleIds);
+
+        // Ensure all requested roles actually exist
+        if (foundRoles.size() != roleIds.size()) {
+            throw new InvalidInputException("One or more Role IDs are invalid.");
+        }
+
+
+        user.setRoles(new HashSet<>(foundRoles));
+        userRepository.save(user);
+        return user;
     }
 }

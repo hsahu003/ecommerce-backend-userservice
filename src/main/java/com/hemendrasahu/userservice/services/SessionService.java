@@ -55,9 +55,12 @@ public class SessionService {
             throw new InvalidInputException("Password and email does not match");
         }
 
+        User user = optionalUser.get();
+
         //create new session
         Map<String, Object> jwtData = new HashMap<>();
         jwtData.put("email", email);
+        jwtData.put("roles", user.getRoles());
         jwtData.put("createdAt", new Date());
         jwtData.put("expiryAt", new Date(LocalDate.now().plusDays(3).toEpochDay()));
 

@@ -38,10 +38,10 @@ public class UserController {
     }
 
     @PatchMapping("{id}/roles")
-    public ResponseEntity<UserDto> setUserRoles(@PathVariable("id") Long userId, @RequestBody SetUserRolesRequestDto requestDto){
+    public ResponseEntity<UserDto> setUserRoles(@PathVariable("id") Long userId, @RequestBody SetUserRolesRequestDto requestDto) throws InvalidInputException {
         System.out.print(requestDto.getRoleIds());
-        UserDto userDto = new UserDto();
-        ResponseEntity<UserDto> response = new ResponseEntity<>(userDto, HttpStatus.OK);
-        return response;
+        User user = userService.setUserRole(userId
+        , requestDto.getRoleIds());
+        return new ResponseEntity<>(UserDto.from(user), HttpStatus.OK);
     }
 }
