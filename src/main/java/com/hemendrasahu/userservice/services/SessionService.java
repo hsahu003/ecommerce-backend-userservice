@@ -26,7 +26,7 @@ public class SessionService {
     UserRepository userRepository;
     SessionRepository sessionRepository;
     BCryptPasswordEncoder bCryptPasswordEncoder;
-    private SecretKey secretKey;
+    private final SecretKey secretKey;
 
     @Autowired
     public SessionService(UserRepository userRepository, SessionRepository sessionRepository, BCryptPasswordEncoder  bCryptPasswordEncoder){
