@@ -7,6 +7,6 @@ import java.util.List;
 
 @Getter
 @Setter
-    public class SetUserRolesRequestDto {
-        private List<Long> roleIds;
-    }
+public class SetUserRolesRequestDto {
+    private List<Long> roleIds;
+}
